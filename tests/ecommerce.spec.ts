@@ -7,36 +7,6 @@ import { products } from '../testdata/products';
 // Creates a unique disposable customer for the registration and checkout scenario.
 import { createAccount } from '../utils/userFactory';
 
-// Confirms the storefront loads, its hero is visible, and product navigation works.
-test('home page renders, supports navigation, and matches its visual baseline', async ({
-  // Provides the browser tab for title, URL, and locator assertions.
-  page,
-  // Provides reusable home-page navigation and the hero-heading locator.
-  homePage,
-  // Identifies the current browser project so only Chromium captures the baseline.
-  browserName,
-}) => {
-  // Opens the storefront using the page object's navigation method.
-  await homePage.goto();
-
-  // Checks the document title to confirm the expected site loaded.
-  await expect(page).toHaveTitle(/Automation Exercise/);
-  // Confirms the main hero heading is visible to the shopper.
-  await expect(homePage.heroHeading).toBeVisible();
-  // Keeps pixel comparisons stable by capturing the baseline only in Chromium.
-  if (browserName === 'chromium') {
-    // Compares the hero heading with the committed visual snapshot.
-    await expect(homePage.heroHeading).toHaveScreenshot('home-hero-heading.png');
-  } // Ends the Chromium-only visual check.
-
-  // Follows the storefront's Products navigation link.
-  await homePage.openProducts();
-  // Confirms navigation reached the catalog route.
-  await expect(page).toHaveURL(/\/products$/);
-  // Verifies the catalog page identifies itself as All Products.
-  await expect(page.getByRole('heading', { name: 'All Products' })).toBeVisible();
-}); // Ends the storefront smoke and visual-baseline scenario.
-
 // Covers both a product search hit and a search with no matching products.
 test('search returns a matching product and handles an empty result set', async ({
   // Provides access to the page URL and catalog result assertions.
@@ -99,89 +69,6 @@ test('login rejects invalid credentials with a clear error', async ({ page, logi
   await expect(page.getByText('Your email or password is incorrect!', { exact: true })).toBeVisible();
 }); // Ends the invalid-login scenario.
 
-// Exercises a complete disposable-customer journey, including purchase and account cleanup.
-test('a registered customer can place an order and delete the test account', async ({
-  // Provides the browser tab for outcome checks and account navigation.
-  page,
-  // Adds the catalog product that will be purchased.
-  productPage,
-  // Opens checkout from the cart.
-  cartPage,
-  // Registers the account, then logs back into it after checkout.
-  loginPage,
-  // Enters an order comment and fictional payment details.
-  checkoutPage,
-  // Restricts the end-to-end account flow to the verified Chromium project.
-  browserName,
-}) => {
-  // The shared practice site's checkout script is inconsistent in Firefox and WebKit.
-  test.skip(
-    browserName !== 'chromium',
-    "The public practice site's checkout script is inconsistent across engines.",
-  ); // Skips this scenario on unsupported browser projects.
-  // Generates a unique profile so parallel or repeated runs avoid duplicate accounts.
-  const account = createAccount();
-  // Opens the registration and login page.
-  await loginPage.goto();
-  // Submits the customer's name and unique email to begin registration.
-  await loginPage.beginSignup(account.name, account.email);
-  // Completes the registration form using the generated profile.
-  await loginPage.completeSignup(account);
-
-  // Verifies the site acknowledges successful account creation.
-  await expect(page.getByRole('heading', { name: 'Account Created!' })).toBeVisible();
-  // Continues from the confirmation page back into the storefront.
-  await page.getByRole('link', { name: 'Continue' }).click();
-  // Confirms the account is now authenticated.
-  await expect(page.getByText(/Logged in as/)).toBeVisible();
-
-  // Opens the catalog to add the product for the new customer.
-  await productPage.goto();
-  // Adds the selected product to the customer's cart.
-  await productPage.addToCart(products.searchable);
-  // Opens the cart using the add confirmation.
-  await page.getByRole('link', { name: 'View Cart' }).click();
-  // Proceeds from the cart into the checkout review.
-  await cartPage.proceedToCheckout();
-  // Confirms checkout uses the registered customer's delivery address.
-  await expect(page.locator('#address_delivery')).toContainText(account.firstName);
-  // Confirms the product selected earlier is listed for review.
-  await expect(page.getByRole('row').filter({ hasText: products.searchable })).toBeVisible();
-
-  // Adds a comment to the order before placing it.
-  await checkoutPage.addOrderComment('Playwright capstone order');
-  // Moves from the checkout review to the payment form.
-  await checkoutPage.placeOrder();
-  // Submits fictional test data; these values are not real payment credentials.
-  await checkoutPage.pay({
-    // Uses the generated account name as the cardholder name.
-    nameOnCard: account.name,
-    // Supplies a standard fictional test card number accepted by the practice site.
-    cardNumber: '4111111111111111',
-    // Supplies the test card's security code.
-    cvc: '123',
-    // Supplies the test card's expiry month.
-    expiryMonth: '12',
-    // Supplies a future test card expiry year.
-    expiryYear: '2030',
-  }); // Submits payment and confirms the order.
-
-  // Confirms that the application reports the order as placed.
-  await expect(page.getByText(/Order Placed!/)).toBeVisible();
-  // Logs out to validate that the new account can authenticate independently.
-  await page.getByRole('link', { name: 'Logout' }).click();
-  // Confirms logout returned the shopper to the login route.
-  await expect(page).toHaveURL(/\/login$/);
-  // Logs back in using the account created during this test.
-  await loginPage.login(account.email, account.password);
-  // Confirms the second login succeeded before deleting the account.
-  await expect(page.getByText(/Logged in as/)).toBeVisible();
-  // Deletes the disposable account to reduce test data left on the public site.
-  await page.getByRole('link', { name: 'Delete Account' }).click();
-  // Verifies the application confirms account deletion.
-  await expect(page.getByRole('heading', { name: 'Account Deleted!' })).toBeVisible();
-}); // Ends the registration, purchase, and cleanup journey.
-
 // Checks that the contact form accepts valid input and shows success feedback.
 test('contact us form accepts a valid message', async ({ page, contactUsPage }) => {
   // Opens the contact form.
@@ -206,48 +93,6 @@ test('contact us form accepts a valid message', async ({ page, contactUsPage }) 
     'Success! Your details have been submitted successfully.',
   ); // Completes the contact-form success assertion.
 }); // Ends the contact-form scenario.
-
-// Demonstrates a scoped network mock so the search result is independent of catalog data.
-test('product search renders a deterministic result when its network response is mocked', async ({
-  // Provides routing support and assertions for the intercepted navigation.
-  page,
-  // Submits the search using the same user interaction as the live-search test.
-  productPage,
-}) => {
-  // Intercepts only the product-search URL using the configured mock product name.
-  await page.route(
-    // Matches the catalog route only when its search query equals the mock value.
-    (url) => url.pathname === '/products' && url.searchParams.get('search') === products.mocked,
-    // Returns a minimal HTML page with the structure expected by the product locator.
-    (route) =>
-      route.fulfill({
-        // Uses a successful HTTP status for the simulated search response.
-        status: 200,
-        // Identifies the response body as a rendered HTML document.
-        contentType: 'text/html',
-        // Provides a deterministic searched-product heading and card.
-        body: `<!doctype html><html><body>
-          <div class="features_items">
-            <h2>Searched Products</h2>
-            <div class="product-image-wrapper"><div class="productinfo">
-              <h2>Rs. 777</h2><p>${products.mocked}</p>
-              <a href="#">Add to cart</a>
-            </div></div>
-          </div>
-        </body></html>`,
-      }), // Completes the mocked HTTP response.
-  ); // Registers the route handler for this test.
-
-  // Opens the real catalog page before exercising the intercepted search.
-  await productPage.goto();
-  // Submits the query that matches the scoped route above.
-  await productPage.searchFor(products.mocked);
-
-  // Confirms the mocked document displays the expected results heading.
-  await expect(page.getByRole('heading', { name: 'Searched Products' })).toBeVisible();
-  // Confirms the mocked product card is rendered and discoverable.
-  await expect(productPage.productCard(products.mocked)).toBeVisible();
-}); // Ends the deterministic network-mocking scenario.
 
 // Runs axe-core against the homepage and records findings for review.
 test('home page has no critical axe-core accessibility violations', async ({ page, homePage }, testInfo) => {

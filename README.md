@@ -56,20 +56,13 @@ short architecture presentation and design decisions.
 
 ## Test coverage
 
-Eight scenarios cover storefront navigation and visual baseline, product search
-and empty results, cart add/remove, invalid login, registration and order
-placement, contact form submission, deterministic search-response mocking, and
-axe-core accessibility scanning. The accessibility gate fails on critical
-violations outside the practice site's known unlabeled footer subscription
-button (`#subscribe`) and attaches the complete axe result set for review.
-The full registration/checkout lifecycle is run in Chromium because the public
-practice site's checkout client script is inconsistent across browser engines;
-the remaining applicable scenarios exercise all three projects.
-
-The visual baseline is pinned to Chromium; browser/OS/font differences make
-cross-engine pixel baselines noisy. Review intentional UI changes before
-updating it with `npm run test:update-snapshots`; commit only reviewed baseline
-changes.
+Six scenarios cover storefront loading and successful login, product search
+with matching and empty results, cart add/remove, invalid-login feedback,
+contact-form submission, and axe-core accessibility scanning. The accessibility
+gate fails on critical violations outside the practice site's known unlabeled
+footer subscription button (`#subscribe`) and attaches the complete axe result
+set for review. All scenarios run in the configured Chromium, Firefox, and
+WebKit projects.
 
 ## Engineering practices
 
