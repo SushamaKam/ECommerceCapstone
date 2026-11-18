@@ -56,13 +56,10 @@ short architecture presentation and design decisions.
 
 ## Test coverage
 
-Six scenarios cover storefront loading and successful login, product search
-with matching and empty results, cart add/remove, invalid-login feedback,
-contact-form submission, and axe-core accessibility scanning. The accessibility
-gate fails on critical violations outside the practice site's known unlabeled
-footer subscription button (`#subscribe`) and attaches the complete axe result
-set for review. All scenarios run in the configured Chromium, Firefox, and
-WebKit projects.
+Five active scenarios cover storefront loading and successful login, product
+search with matching and empty results, cart add/remove, invalid-login feedback,
+and contact-form submission. All scenarios run in the configured Chromium,
+Firefox, and WebKit projects.
 
 ## Engineering practices
 
