@@ -95,7 +95,7 @@ test('contact us form accepts a valid message', async ({ page, contactUsPage }) 
 }); // Ends the contact-form scenario.
 
 // Runs axe-core against the homepage and records findings for review.
-/*test('home page has no critical axe-core accessibility violations', async ({ page, homePage }, testInfo) => {
+test('home page has no critical axe-core accessibility violations', async ({ page, homePage }, testInfo) => {
   // Opens the page that will be scanned for accessibility issues.
   await homePage.goto();
   // Configures axe to check WCAG 2.0 A/AA and WCAG 2.1 A/AA rules.
@@ -122,4 +122,4 @@ test('contact us form accepts a valid message', async ({ page, contactUsPage }) 
     .filter(({ node }) => !node.target.includes('#subscribe'));
   // Fails the test if any critical violation remains outside the documented exception.
   expect(unexpectedCriticalViolations).toEqual([]);
-}); // Ends the axe-core accessibility scenario.*/
+}); // Ends the axe-core accessibility scenario.
